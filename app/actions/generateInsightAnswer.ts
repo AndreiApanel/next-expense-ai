@@ -31,14 +31,15 @@ export async function generateInsightAnswer(question: string): Promise<string> {
     });
 
     // Convert to format expected by AI
-    type Expense = (typeof expenses)[number];
-    const expenseData: ExpenseRecord[] = expenses.map((expense: Expense) => ({
-      id: expense.id,
-      amount: expense.amount,
-      category: expense.category || 'Other',
-      description: expense.text,
-      date: expense.createdAt.toISOString(),
-    }));
+    const expenseData: ExpenseRecord[] = expenses.map(
+      (expense: Awaited<ReturnType<typeof db.record.findMany>>[number]) => ({
+        id: expense.id,
+        amount: expense.amount,
+        category: expense.category || 'Other',
+        description: expense.text,
+        date: expense.createdAt.toISOString(),
+      }),
+    );
 
     // Generate AI answer
     const answer = await generateAIAnswer(question, expenseData);

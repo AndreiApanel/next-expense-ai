@@ -26,7 +26,9 @@ async function getBestWorstExpense(): Promise<{
       return {bestExpense: 0, worstExpense: 0}; // Return 0 if no records exist
     }
 
-    const amounts = records.map(record => record.amount);
+    const amounts = records.map(
+      (record: Awaited<ReturnType<typeof db.record.findMany>>[number]) => record.amount,
+    );
 
     // Calculate best and worst expense amounts
     const bestExpense = Math.max(...amounts); // Highest amount

@@ -14,8 +14,10 @@ async function getRecords(): Promise<{
   }
 
   try {
+    // NOTE: Using clerkUserId to match database foreign key constraint
+    // TODO: Fix database migration to reference User.id instead of User.clerkUserId
     const records = await db.record.findMany({
-      where: {userId: user.id},
+      where: {userId: user.clerkUserId},
       orderBy: {
         date: 'desc', // Sort by the `date` field in descending order
       },

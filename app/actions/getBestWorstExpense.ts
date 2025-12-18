@@ -14,9 +14,11 @@ async function getBestWorstExpense(): Promise<{
   }
 
   try {
+    // NOTE: Using clerkUserId to match database foreign key constraint
+    // TODO: Fix database migration to reference User.id instead of User.clerkUserId
     // Fetch all records for the authenticated user
     const records = await db.record.findMany({
-      where: {userId: user.id},
+      where: {userId: user.clerkUserId},
       select: {amount: true}, // Fetch only the `amount` field for efficiency
     });
 

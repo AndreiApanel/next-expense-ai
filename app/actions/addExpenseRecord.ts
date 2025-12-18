@@ -92,14 +92,29 @@ async function addExpenseRecord(formData: FormData): Promise<RecordResult> {
       return {error: 'User not found in database'};
     }
 
+    // NOTE: The database foreign key constraint references User.clerkUserId instead of User.id
+    // This is a migration issue. For now, we use clerkUserId to match the constraint.
+    // TODO: Create a migration to fix the foreign key to reference User.id instead
+
+    // Verify the user exists in the database before creating record
+    const userExists = await db.user.findUnique({
+      where: {clerkUserId: user.clerkUserId},
+    });
+
+    if (!userExists) {
+      console.error('User does not exist in database:', user.clerkUserId);
+      return {error: 'User not found in database. Please try logging in again.'};
+    }
+
     // Create a new record (allow multiple expenses per day)
+    // Using clerkUserId temporarily to match the database foreign key constraint
     const createdRecord = await db.record.create({
       data: {
         text,
         amount,
         category,
         date, // Save the date to the database
-        userId: user.id,
+        userId: user.clerkUserId, // Temporary: should be user.id after migration fix
       },
     });
 

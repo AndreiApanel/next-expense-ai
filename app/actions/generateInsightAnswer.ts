@@ -15,9 +15,11 @@ export async function generateInsightAnswer(question: string): Promise<string> {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+    // NOTE: Using clerkUserId to match database foreign key constraint
+    // TODO: Fix database migration to reference User.id instead of User.clerkUserId
     const expenses = await db.record.findMany({
       where: {
-        userId: user.id,
+        userId: user.clerkUserId,
         createdAt: {
           gte: thirtyDaysAgo,
         },

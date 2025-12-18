@@ -14,8 +14,10 @@ async function getUserRecord(): Promise<{
   }
 
   try {
+    // NOTE: Using clerkUserId to match database foreign key constraint
+    // TODO: Fix database migration to reference User.id instead of User.clerkUserId
     const records = await db.record.findMany({
-      where: {userId: user.id},
+      where: {userId: user.clerkUserId},
     });
 
     const record = records.reduce((sum, record) => sum + record.amount, 0);

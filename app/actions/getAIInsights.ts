@@ -51,13 +51,15 @@ export async function getAIInsights(): Promise<AIInsight[]> {
     }
 
     // Convert to format expected by AI
-    const expenseData: ExpenseRecord[] = expenses.map(expense => ({
-      id: expense.id,
-      amount: expense.amount,
-      category: expense.category || 'Other',
-      description: expense.text,
-      date: expense.createdAt.toISOString(),
-    }));
+    const expenseData: ExpenseRecord[] = expenses.map(
+      (expense: Awaited<ReturnType<typeof db.record.findMany>>[number]) => ({
+        id: expense.id,
+        amount: expense.amount,
+        category: expense.category || 'Other',
+        description: expense.text,
+        date: expense.createdAt.toISOString(),
+      }),
+    );
 
     // Generate AI insights
     const insights = await generateExpenseInsights(expenseData);

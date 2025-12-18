@@ -94,6 +94,7 @@ export default function Navbar() {
                         userButtonBox: 'flex items-center justify-center',
                       },
                     }}
+                    afterSignOutUrl="/"
                   />
                 </div>
               </SignedIn>
@@ -178,6 +179,7 @@ export default function Navbar() {
                         userButtonBox: 'flex items-center justify-center',
                       },
                     }}
+                    afterSignOutUrl="/"
                   />
                 </div>
               </SignedIn>

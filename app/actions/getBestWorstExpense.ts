@@ -1,22 +1,22 @@
 'use server';
 import {db} from '@/lib/db';
-import {auth} from '@clerk/nextjs/server';
+import {checkUser} from '@/lib/checkUser';
 
 async function getBestWorstExpense(): Promise<{
   bestExpense?: number;
   worstExpense?: number;
   error?: string;
 }> {
-  const {userId} = await auth();
+  const user = await checkUser();
 
-  if (!userId) {
+  if (!user) {
     return {error: 'User not found'};
   }
 
   try {
     // Fetch all records for the authenticated user
     const records = await db.record.findMany({
-      where: {userId},
+      where: {userId: user.id},
       select: {amount: true}, // Fetch only the `amount` field for efficiency
     });
 

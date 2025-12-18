@@ -1,6 +1,7 @@
 'use server';
 import {auth} from '@clerk/nextjs/server';
 import {db} from '@/lib/db';
+import {checkUser} from '@/lib/checkUser';
 import {revalidatePath} from 'next/cache';
 
 interface RecordData {
@@ -36,21 +37,46 @@ async function addExpenseRecord(formData: FormData): Promise<RecordResult> {
 
   const text: string = textValue.toString(); // Ensure text is a string
   const amount: number = parseFloat(amountValue.toString()); // Parse amount as number
+  
+  // Validate amount
+  if (isNaN(amount) || amount <= 0) {
+    return {error: 'Invalid amount. Please enter a valid positive number.'};
+  }
+  
   const category: string = categoryValue.toString(); // Ensure category is a string
-  // Convert date to ISO-8601 format while preserving the user's input date
-  let date: string;
+  
+  // Convert date to Date object for database
+  let date: Date;
   try {
     // Parse the date string (YYYY-MM-DD format) and create a date at noon UTC to avoid timezone issues
     const inputDate = dateValue.toString();
     const [year, month, day] = inputDate.split('-');
-    const dateObj = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0));
-    date = dateObj.toISOString();
+    
+    // Validate date components
+    if (!year || !month || !day) {
+      return {error: 'Invalid date format. Please use YYYY-MM-DD format.'};
+    }
+    
+    const yearNum = parseInt(year, 10);
+    const monthNum = parseInt(month, 10);
+    const dayNum = parseInt(day, 10);
+    
+    if (isNaN(yearNum) || isNaN(monthNum) || isNaN(dayNum)) {
+      return {error: 'Invalid date format. Please use YYYY-MM-DD format.'};
+    }
+    
+    date = new Date(Date.UTC(yearNum, monthNum - 1, dayNum, 12, 0, 0));
+    
+    // Validate the date is valid
+    if (isNaN(date.getTime())) {
+      return {error: 'Invalid date. Please enter a valid date.'};
+    }
   } catch (error) {
     console.error('Invalid date format:', error); // Log the error
-    return {error: 'Invalid date format'};
+    return {error: 'Invalid date format. Please use YYYY-MM-DD format.'};
   }
 
-  // Get logged in user
+  // Get logged in user from Clerk
   const {userId: clerkUserId} = await auth();
 
   // Check for user
@@ -59,12 +85,8 @@ async function addExpenseRecord(formData: FormData): Promise<RecordResult> {
   }
 
   try {
-    // Find the user in database
-    const user = await db.user.findUnique({
-      where: {
-        clerkUserId,
-      },
-    });
+    // Get or create the user in database
+    const user = await checkUser();
 
     if (!user) {
       return {error: 'User not found in database'};
@@ -85,7 +107,7 @@ async function addExpenseRecord(formData: FormData): Promise<RecordResult> {
       text: createdRecord.text,
       amount: createdRecord.amount,
       category: createdRecord.category,
-      date: createdRecord.date?.toISOString() || date,
+      date: createdRecord.date?.toISOString() || date.toISOString(),
     };
 
     revalidatePath('/');
@@ -93,6 +115,32 @@ async function addExpenseRecord(formData: FormData): Promise<RecordResult> {
     return {data: recordData};
   } catch (error) {
     console.error('Error adding expense record:', error); // Log the error
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      // Check for common database errors
+      if (error.message.includes('Unique constraint')) {
+        return {error: 'This expense record already exists.'};
+      }
+      if (error.message.includes('Foreign key constraint')) {
+        return {error: 'User not found. Please try logging in again.'};
+      }
+      if (error.message.includes('Invalid value')) {
+        return {error: 'Invalid data provided. Please check your inputs.'};
+      }
+      
+      // Log the full error for debugging
+      console.error('Full error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+      
+      return {
+        error: `Error: ${error.message}`,
+      };
+    }
+    
     return {
       error: 'An unexpected error occurred while adding the expense record.',
     };

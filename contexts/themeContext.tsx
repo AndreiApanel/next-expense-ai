@@ -11,39 +11,48 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const getInitialTheme = (): Theme => {
-  // Check localStorage first, then system preference
-  const savedTheme = localStorage.getItem('theme') as Theme;
-  if (savedTheme) {
-    return savedTheme;
-  }
-  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  return systemPrefersDark ? 'dark' : 'light';
-};
-
 export function ThemeProvider({children}: {children: React.ReactNode}) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    try {
-      return getInitialTheme();
-    } catch {
-      return 'light';
+  // Get initial theme function - safe to call on client
+  const getInitialTheme = (): Theme => {
+    if (typeof window === 'undefined') return 'light';
+
+    // Check localStorage first
+    const savedTheme = localStorage.getItem('theme') as Theme | null;
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      return savedTheme;
     }
+
+    // Check system preference
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+
+    return 'light';
+  };
+
+  // Initialize theme state with a function to avoid calling getInitialTheme on server
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return 'light';
+    return getInitialTheme();
   });
 
+  // Apply theme to document on mount and when theme changes
   useEffect(() => {
-    localStorage.setItem('theme', theme);
+    // Ensure theme is applied to document
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+
+    // Save to localStorage
+    localStorage.setItem('theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   };
 
-  // Always render the provider, but handle mounting gracefully
   return <ThemeContext.Provider value={{theme, toggleTheme}}>{children}</ThemeContext.Provider>;
 }
 

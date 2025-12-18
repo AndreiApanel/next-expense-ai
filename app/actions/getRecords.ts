@@ -1,21 +1,21 @@
 'use server';
 import {db} from '@/lib/db';
-import {auth} from '@clerk/nextjs/server';
+import {checkUser} from '@/lib/checkUser';
 import {Record} from '@/types/Record';
 
 async function getRecords(): Promise<{
   records?: Record[];
   error?: string;
 }> {
-  const {userId} = await auth();
+  const user = await checkUser();
 
-  if (!userId) {
+  if (!user) {
     return {error: 'User not found'};
   }
 
   try {
     const records = await db.record.findMany({
-      where: {userId},
+      where: {userId: user.id},
       orderBy: {
         date: 'desc', // Sort by the `date` field in descending order
       },

@@ -129,7 +129,7 @@ export async function generateExpenseInsights(expenses: ExpenseRecord[]): Promis
 export async function categorizeExpense(description: string): Promise<string> {
   try {
     const completion = await openai.chat.completions.create({
-      model: 'deepseek/deepseek-chat-v3-0324:free',
+      model: 'nex-agi/deepseek-v3.1-nex-n1:free',
       messages: [
         {
           role: 'system',
@@ -157,53 +157,3 @@ export async function categorizeExpense(description: string): Promise<string> {
   }
 }
 
-export async function generateAIAnswer(question: string, context: ExpenseRecord[]): Promise<string> {
-  try {
-    const expensesSummary = context.map(expense => ({
-      amount: expense.amount,
-      category: expense.category,
-      description: expense.description,
-      date: expense.date,
-    }));
-
-    const prompt = `Based on the following expense data, provide a detailed and actionable answer to this question: "${question}"
-
-    Expense Data:
-    ${JSON.stringify(expensesSummary, null, 2)}
-
-    Provide a comprehensive answer that:
-    1. Addresses the specific question directly
-    2. Uses concrete data from the expenses when possible
-    3. Offers actionable advice
-    4. Keeps the response concise but informative (2-3 sentences)
-    
-    Return only the answer text, no additional formatting.`;
-
-    const completion = await openai.chat.completions.create({
-      model: 'nex-agi/deepseek-v3.1-nex-n1:free',
-      messages: [
-        {
-          role: 'system',
-          content:
-            'You are a helpful financial advisor AI that provides specific, actionable answers based on expense data. Be concise but thorough.',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 200,
-    });
-
-    const response = completion.choices[0].message.content;
-    if (!response) {
-      throw new Error('No response from AI');
-    }
-
-    return response.trim();
-  } catch (error) {
-    console.error('❌ Error generating AI answer:', error);
-    return "I'm unable to provide a detailed answer at the moment. Please try refreshing the insights or check your connection.";
-  }
-}

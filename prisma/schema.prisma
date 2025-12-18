@@ -31,7 +31,7 @@ model Record {
   category String   @default("Other")
   date     DateTime @default(now())
   userId   String
-  user     User     @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   @@index([userId])
 }

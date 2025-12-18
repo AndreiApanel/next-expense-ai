@@ -1,12 +1,12 @@
 export default function ExpenseStats() {
   return (
-    <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-600/50 rounded-2xl shadow-lg shadow-gray-900/5 dark:shadow-black/30 p-6 hover:shadow-2xl transition-all duration-300">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
-          <span className="text-white text-lg">📊</span>
+    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-gray-100/50 dark:border-gray-700/50 hover:shadow-2xl">
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
+          <span className="text-white text-sm sm:text-lg">📊</span>
         </div>
         <div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 leading-tight">Expense Statistics</h3>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 leading-tight">Expense Statistics</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Your financial overview</p>
         </div>
       </div>

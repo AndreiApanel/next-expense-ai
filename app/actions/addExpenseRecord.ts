@@ -51,14 +51,25 @@ async function addExpenseRecord(formData: FormData): Promise<RecordResult> {
   }
 
   // Get logged in user
-  const {userId} = await auth();
+  const {userId: clerkUserId} = await auth();
 
   // Check for user
-  if (!userId) {
+  if (!clerkUserId) {
     return {error: 'User not found'};
   }
 
   try {
+    // Find the user in database
+    const user = await db.user.findUnique({
+      where: {
+        clerkUserId,
+      },
+    });
+
+    if (!user) {
+      return {error: 'User not found in database'};
+    }
+
     // Create a new record (allow multiple expenses per day)
     const createdRecord = await db.record.create({
       data: {
@@ -66,7 +77,7 @@ async function addExpenseRecord(formData: FormData): Promise<RecordResult> {
         amount,
         category,
         date, // Save the date to the database
-        userId,
+        userId: user.id,
       },
     });
 

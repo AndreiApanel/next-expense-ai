@@ -1,23 +1,21 @@
 'use server';
 import {db} from '@/lib/db';
-import {checkUser} from '@/lib/checkUser';
+import {auth} from '@clerk/nextjs/server';
 import {Record} from '@/types/Record';
 
 async function getRecords(): Promise<{
   records?: Record[];
   error?: string;
 }> {
-  const user = await checkUser();
+  const {userId} = await auth();
 
-  if (!user) {
+  if (!userId) {
     return {error: 'User not found'};
   }
 
   try {
-    // NOTE: Using clerkUserId to match database foreign key constraint
-    // TODO: Fix database migration to reference User.id instead of User.clerkUserId
     const records = await db.record.findMany({
-      where: {userId: user.clerkUserId},
+      where: {userId},
       orderBy: {
         date: 'desc', // Sort by the `date` field in descending order
       },

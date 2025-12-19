@@ -2,12 +2,12 @@
 import {PrismaClient} from '@prisma/client';
 
 declare global {
-  // Prevent multiple instances of Prisma Client in development
-  // to avoid exhausting your database connections
+  // Prevent multiple instances of Prisma Client in development (Next.js hot reload)
   // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 
+// Singleton pattern для dev
 export const db =
   globalThis.prisma ??
   new PrismaClient({

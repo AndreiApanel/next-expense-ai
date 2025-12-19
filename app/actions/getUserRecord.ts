@@ -1,6 +1,7 @@
 'use server';
 import {db} from '@/lib/db';
 import {auth} from '@clerk/nextjs/server';
+import {Record} from '@/types/Record'; // если есть свой интерфейс Record
 
 async function getUserRecord(): Promise<{
   record?: number;
@@ -14,18 +15,20 @@ async function getUserRecord(): Promise<{
   }
 
   try {
-    const records = await db.record.findMany({
+    // Получаем все записи пользователя
+    const records: Record[] = await db.record.findMany({
       where: {userId},
     });
 
-    const record = records.reduce((sum, record) => sum + record.amount, 0);
+    // Суммируем все значения
+    const record: number = records.reduce((sum: number, r: Record) => sum + r.amount, 0);
 
-    // Count the number of days with valid sleep records
-    const daysWithRecords = records.filter(record => record.amount > 0).length;
+    // Считаем количество дней с записью
+    const daysWithRecords: number = records.filter(r => r.amount > 0).length;
 
     return {record, daysWithRecords};
   } catch (error) {
-    console.error('Error fetching user record:', error); // Log the error
+    console.error('Error fetching user record:', error);
     return {error: 'Database error'};
   }
 }

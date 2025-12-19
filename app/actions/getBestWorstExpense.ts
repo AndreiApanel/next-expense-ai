@@ -14,29 +14,26 @@ async function getBestWorstExpense(): Promise<{
   }
 
   try {
-    // NOTE: Using clerkUserId to match database foreign key constraint
-    // TODO: Fix database migration to reference User.id instead of User.clerkUserId
     // Fetch all records for the authenticated user
     const records = await db.record.findMany({
       where: {userId: user.clerkUserId},
-      select: {amount: true}, // Fetch only the `amount` field for efficiency
+      select: {amount: true}, // only `amount` field
     });
 
-    if (!records || records.length === 0) {
-      return {bestExpense: 0, worstExpense: 0}; // Return 0 if no records exist
+    if (!records.length) {
+      return {bestExpense: 0, worstExpense: 0}; // no records
     }
 
-    const amounts = records.map(
-      (record: Awaited<ReturnType<typeof db.record.findMany>>[number]) => record.amount,
-    );
+    // Map amounts (TypeScript already knows record has `amount`)
+    const amounts = records.map(record => record.amount);
 
     // Calculate best and worst expense amounts
-    const bestExpense = Math.max(...amounts); // Highest amount
-    const worstExpense = Math.min(...amounts); // Lowest amount
+    const bestExpense = Math.max(...amounts);
+    const worstExpense = Math.min(...amounts);
 
     return {bestExpense, worstExpense};
   } catch (error) {
-    console.error('Error fetching expense amounts:', error); // Log the error
+    console.error('Error fetching expense amounts:', error);
     return {error: 'Database error'};
   }
 }

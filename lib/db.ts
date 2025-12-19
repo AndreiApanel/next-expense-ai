@@ -1,4 +1,4 @@
-import {PrismaClient} from '@prisma/client';
+import {PrismaClient} from '@prisma/client/edge';
 import {PrismaPg} from '@prisma/adapter-pg';
 import pg from 'pg';
 
@@ -26,4 +26,6 @@ const prismaClientSingleton = () => {
 
 export const db = globalThis.prisma ?? prismaClientSingleton();
 
-if (process.env.NODE_ENV !== 'production') globalThis.prisma = db;
+if (process.env.NODE_ENV !== 'production') {
+  globalThis.prisma = db;
+}

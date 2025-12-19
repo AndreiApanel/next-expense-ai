@@ -1,28 +1,33 @@
-// app/actions/getUserRecord.ts
 'use server';
 import {db} from '@/lib/db';
-import {checkUser} from '@/lib/checkUser';
-import {Record} from '@/types/Record';
+import {auth} from '@clerk/nextjs/server';
 
-export default async function getUserRecord(): Promise<{
+async function getUserRecord(): Promise<{
   record?: number;
   daysWithRecords?: number;
   error?: string;
 }> {
-  const user = await checkUser();
-  if (!user) return {error: 'User not found'};
+  const {userId} = await auth();
+
+  if (!userId) {
+    return {error: 'User not found'};
+  }
 
   try {
-    const records: Record[] = await db.record.findMany({
-      where: {userId: user.clerkUserId},
+    const records = await db.record.findMany({
+      where: {userId},
     });
 
-    const record = records.reduce((sum, r) => sum + r.amount, 0);
-    const daysWithRecords = records.filter(r => r.amount > 0).length;
+    const record = records.reduce((sum, record) => sum + record.amount, 0);
+
+    // Count the number of days with valid sleep records
+    const daysWithRecords = records.filter(record => record.amount > 0).length;
 
     return {record, daysWithRecords};
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error('Error fetching user record:', error); // Log the error
     return {error: 'Database error'};
   }
 }
+
+export default getUserRecord;

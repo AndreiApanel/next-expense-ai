@@ -15,9 +15,9 @@ async function getBestWorstExpense(): Promise<{
 
   try {
     // Fetch all records for the authenticated user
-    const records = await db.record.findMany({
+    const records: {amount: number}[] = await db.record.findMany({
       where: {userId: user.clerkUserId},
-      select: {amount: true}, // only `amount` field
+      select: {amount: true},
     });
 
     if (!records.length) {

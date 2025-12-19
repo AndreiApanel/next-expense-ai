@@ -1,6 +1,7 @@
 'use server';
 import {db} from '@/lib/db';
 import {checkUser} from '@/lib/checkUser';
+import {Record} from '@/types/Record';
 
 async function getUserRecord(): Promise<{
   record?: number;
@@ -16,12 +17,12 @@ async function getUserRecord(): Promise<{
   try {
     // NOTE: Using clerkUserId to match database foreign key constraint
     // TODO: Fix database migration to reference User.id instead of User.clerkUserId
-    const records = await db.record.findMany({
+    const records: Record[] = await db.record.findMany({
       where: {userId: user.clerkUserId},
     });
 
-		const record = records.reduce<number>((sum, record) => sum + record.amount, 0);
-		
+    const record = records.reduce((sum: number, record) => sum + record.amount, 0);
+
     // Count the number of days with valid sleep records
     const daysWithRecords = records.filter(record => record.amount > 0).length;
 

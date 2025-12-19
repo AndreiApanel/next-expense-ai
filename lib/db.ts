@@ -1,31 +1,22 @@
-import {PrismaClient} from '@prisma/client/edge';
+import PrismaClient from '@prisma/client/edge';
 import {PrismaPg} from '@prisma/adapter-pg';
 import pg from 'pg';
 
 const {Pool} = pg;
 
-declare global {
-  var prisma: PrismaClient | undefined;
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL environment variable is not set');
 }
 
-const prismaClientSingleton = () => {
-  const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({connectionString});
+const adapter = new PrismaPg(pool);
 
-  if (!connectionString) {
-    throw new Error('DATABASE_URL environment variable is not set');
-  }
+// Edge Prisma уже экспортирует готовый клиент
+export const db = PrismaClient;
 
-  const pool = new Pool({connectionString});
-  const adapter = new PrismaPg(pool);
+// Если нужно, подключаем адаптер (иногда необязательно)
+db.$connect({adapter});
 
-  return new PrismaClient({
-    adapter,
-    log: process.env.NODE_ENV === 'development' ? ['query', 'warn', 'error'] : ['error'],
-  });
-};
-
-export const db = globalThis.prisma ?? prismaClientSingleton();
-
-if (process.env.NODE_ENV !== 'production') {
-  globalThis.prisma = db;
-}
+// Hot reload / singleton паттерн не нужен для edge Prisma
